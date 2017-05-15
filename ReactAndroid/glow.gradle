@@ -3,7 +3,7 @@
 apply plugin: 'maven-publish'
 
 ext {
-    GROUP_ID = 'com.facebook.react'
+    GROUP_ID = 'com.glow.android.prime'
     BASE_ARTIFACT_ID = 'react-native'
 }
 
