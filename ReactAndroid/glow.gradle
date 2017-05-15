@@ -1,0 +1,92 @@
+
+// publish
+apply plugin: 'maven-publish'
+
+ext {
+    GROUP_ID = 'com.facebook.react'
+    BASE_ARTIFACT_ID = 'react-native'
+}
+
+publishing {
+    publications {
+        android.libraryVariants.all { variant ->
+            if (variant.buildType.name.equalsIgnoreCase('release')) {
+                "${getPublicationName(project.name, null)}"(MavenPublication) {
+                    groupId GROUP_ID
+                    artifactId "${getArtifactId(BASE_ARTIFACT_ID, null)}"
+                    // from components.java // currently doesn't support from android
+                    // do the trick as below
+                    variant.outputs.each { output ->
+                        artifact output.outputFile
+                    }
+                    artifact androidSourcesJar
+                    artifact androidJavadocJar
+                    version VERSION_NAME
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name 'glow'
+            url GLOW_MAVEN
+            credentials {
+                username = USERNAME
+                password = PASSWORD
+            }
+        }
+    }
+}
+
+task androidJavadoc(type: Javadoc) {
+    failOnError false
+    source = android.sourceSets.main.java.srcDirs
+    classpath += files(android.bootClasspath)
+    include '**/*.java'
+    exclude '**/ReactBuildConfig.java'
+}
+
+task androidJavadocJar(type: Jar, dependsOn: androidJavadoc) {
+    classifier = 'javadoc'
+    from androidJavadoc.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+    include '**/*.java'
+}
+
+def toCamelCase(orig) {
+    // regular expression is a dash, followed by parenthesis that form a group where we hold the word's first character
+    orig.replaceAll(/[-_](\w)/) { fullMatch, firstCharacter -> firstCharacter.toUpperCase() }
+}
+
+// Currently only support buildType
+// To support flavor, add the naming rules here
+def getPublicationName(projectName, variant) {
+    if (variant == null) {
+        return toCamelCase(projectName)
+    } else {
+        return toCamelCase(projectName) + variant.buildType.name.capitalize()
+    }
+}
+
+// Currently only support buildType
+// To support flavor, add the naming rules here
+def getArtifactId(baseArtifactId, variant) {
+    if (variant == null) {
+        return baseArtifactId
+    } else {
+        return baseArtifactId + '-' + variant.buildType.name
+    }
+}
+
+// assemble before publish
+getTasks().all { task ->
+    def taskName = task.getName()
+    if (taskName.startsWith('publish')) {
+        task.dependsOn 'assemble'
+    }
+}
