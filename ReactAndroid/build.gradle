@@ -299,4 +299,4 @@ dependencies {
     androidTestCompile "org.mockito:mockito-core:${MOCKITO_CORE_VERSION}"
 }
 
-apply from: 'glow.gradle'
+apply from: 'release.gradle'
