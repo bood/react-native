@@ -12,15 +12,15 @@ def isReleaseBuild() {
 }
 
 def getRepositoryUrl() {
-    return hasProperty('repositoryUrl') ? property('repositoryUrl') : 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+    return GLOW_MAVEN
 }
 
 def getRepositoryUsername() {
-    return hasProperty('repositoryUsername') ? property('repositoryUsername') : ''
+    return USERNAME
 }
 
 def getRepositoryPassword() {
-    return hasProperty('repositoryPassword') ? property('repositoryPassword') : ''
+    return PASSWORD
 }
 
 def configureReactNativePom(def pom) {
@@ -125,7 +125,7 @@ afterEvaluate { project ->
         configuration = configurations.archives
         repositories.mavenDeployer {
             // Deploy to react-native/android, ready to publish to npm
-            repository url: "file://${projectDir}/../android"
+            repository url: repositories.mavenLocal().url
 
             configureReactNativePom pom
         }
